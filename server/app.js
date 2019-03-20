@@ -3,7 +3,8 @@ const routes = require('./routes/')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const bodyParser = require('body-parser')
-const helmet = require('helmet')
+//TODO: Determine if security features from helmet are needed, and if not, remove
+//const helmet = require('helmet')
 //TODO: Determine if dependency is needed, and if not, remove
 //const cloudinary = require('cloudinary')
 
