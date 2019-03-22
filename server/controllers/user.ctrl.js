@@ -12,7 +12,7 @@ module.exports = {
       }
       next()
     })
-  }
+  },
 
   getUser: (req, res, next) => {
     User.findById(req.params.id).then
