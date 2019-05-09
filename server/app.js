@@ -33,6 +33,8 @@ mongoose.connect(mongoURI, {useNewUrlParser: true}).then(
   (err) => {console.log(`Unable to connect to mongoDB at ${mongoURI}`)}
 )
 
+require('./models/Article')
+
 app.use(require('./routes'))
 
 app.use((req, res, next) => {
