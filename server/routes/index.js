@@ -1,7 +1,6 @@
-const user = require('./User')
-const article = require('./Article')
+const express = require('express')
+const router = express.Router()
 
-module.exports = (router) => {
-  user(router)
-  article(router)
-}
+//router.use('/api', require('./api'))
+
+module.exports = router

@@ -1,36 +1,72 @@
-const express = require("express")
-const routes = require('./routes/')
-const mongoose = require('mongoose')
-const cors = require('cors')
+const path = require('path')
+const express = require('express')
 const bodyParser = require('body-parser')
-//TODO: Determine if security features from helmet are needed, and if not, remove
-//const helmet = require('helmet')
-//TODO: Determine if dependency is needed, and if not, remove
-//const cloudinary = require('cloudinary')
+const session = require('express-session')
+const cors = require('cors')
+const errorHandler = require('errorhandler')
+const mongoose = require('mongoose')
+
+mongoose.promise = global.Promise
+
+const isProduction = process.env.NODE_ENV === 'production'
 
 const app = express()
-const router = express.Router()
-const url = process.env.MONGODB_URI || "mongodb://localhost:27017/blog"
-
-try {
-  mongoose.connect(url, {
-    //TODO: Determine if following line is deprecated, and if so, remove
-    //useMongoClient: true
-  })
-} catch (error) {
-  console.log("Failed to connect to MongoDB")
-}
-
-let port = process.env.PORT || 5000
-
-routes(router)
 
 app.use(cors())
+app.use(require('morgan')('dev'))
+app.use(bodyParser.urlencoded({ extended: false}))
 app.use(bodyParser.json())
-app.use(helmet())
+app.use(express.static(path.join(__dirname, 'public')))
+app.use(session({ secret: 'MicroBlog', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false}))
 
-app.use('/api', router)
+if(!isProduction) {
+  app.use(errorHandler());
+}
 
-app.listen(port, () => {
-  console.log('Server started at port: ${port}')
+const mongoURI = 'mongodb://localhost/microblog'
+
+mongoose.set('debug', true)
+
+mongoose.connect(mongoURI, {useNewUrlParser: true}).then(
+  () => {console.log(`Successfully connected to mongoDB at ${mongoURI}`)}
+).catch(
+  (err) => {console.log(`Unable to connect to mongoDB at ${mongoURI}`)}
+)
+
+require('./models/Article')
+
+app.use(require('./routes'))
+
+app.use((req, res, next) => {
+  const err = new Error('Not Found')
+  err.status = 404
+  next(err)
 })
+
+if (!isProduction) {
+  app.use((err, req, res) => {
+    res.status(err.status || 500)
+
+    res.json({
+      errors: {
+        message: err.message,
+        error: {},
+      },
+    })
+  })
+}
+
+app.use((err, req, res) => {
+  res.status(err.status || 500)
+
+  res.json({
+    errors: {
+      message: err.message,
+      error: {},
+    },
+  })
+})
+
+const listenPort = 8000
+
+const server = app.listen(listenPort, () => console.log(`Server started on http://localhost:${listenPort}`))
